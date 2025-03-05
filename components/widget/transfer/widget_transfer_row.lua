@@ -21,9 +21,11 @@ local PlayerDisplay = Lua.import('Module:Player/Display/Custom')
 local TransferRef = Lua.import('Module:Transfer/References')
 
 local Widget = Lua.import('Module:Widget')
-local Widgets = Lua.import('Module:Widget/All')
-local Div = Widgets.Div
+local HtmlWidgets = Lua.import('Module:Widget/Html/All')
+local Div = HtmlWidgets.Div
 local IconFa = Lua.import('Module:Widget/Image/Icon/Fontawesome')
+local TransferRoleWidget = Lua.import('Module:Widget/Transfer/Role')
+local WidgetUtil = Lua.import('Module:Widget/Util')
 
 local HAS_PLATFORM_ICONS = Lua.moduleExists('Module:Platform/data')
 local EMPTY_POSITION_ICON = '[[File:Logo filler event.png|16px|link=]]'
@@ -250,7 +252,7 @@ function TransferRowWidget:players()
 	}
 end
 
----@return Html
+---@return Widget
 function TransferRowWidget:from()
 	return self:_displayTeam{
 		data = self.transfer.from,
@@ -260,63 +262,54 @@ function TransferRowWidget:from()
 end
 
 ---@param args {isOldTeam: boolean, date: string, data: {teams: string[], roles: string[]}}
----@return Html
+---@return Widget
 function TransferRowWidget:_displayTeam(args)
 	local showTeamName = self.props.showTeamName
 	local isOldTeam = args.isOldTeam
 	local data = args.data
 	local align = isOldTeam and 'right' or 'left'
-	local teamCell = mw.html.create('div')
-		:addClass('divCell Team ' .. (isOldTeam and 'OldTeam' or 'NewTeam'))
-
-	if showTeamName then
-		teamCell:css('text-align', align)
-	end
+	local teamDisplay
+	local roleDisplay
 
 	if not data.teams[1] and not data.roles[1] then
-		return teamCell:node(self:_createRole{'&nbsp;None&nbsp;'}:css('margin-' .. align, showTeamName and '60px' or nil))
+		roleDisplay = TransferRoleWidget{
+			roles = { '&nbsp;None&nbsp;' },
+			align = align,
+			addMargin = showTeamName
+		}
+	else
+		local displayTeam = showTeamName and
+			(isOldTeam and mw.ext.TeamTemplate.team2short or mw.ext.TeamTemplate.teamshort) or
+			mw.ext.TeamTemplate.teamicon
+
+		teamDisplay = Array.interleave(Array.map(data.teams, function(team)
+			return displayTeam(team, args.date)
+		end), ' / ')
+
+		roleDisplay = TransferRoleWidget{
+			roles = data.roles,
+			team = data.teams[1],
+			align = align,
+			addMargin = (showTeamName and not data.teams[1])
+		}
 	end
 
-	local displayTeam = showTeamName and
-		(isOldTeam and mw.ext.TeamTemplate.team2short or mw.ext.TeamTemplate.teamshort) or
-		mw.ext.TeamTemplate.teamicon
-
-	teamCell:node(table.concat(Array.map(data.teams, function(team)
-		return displayTeam(team, args.date)
-	end), ' / '))
-
-	local roleCell = self:_createRole(data.roles, data.teams[1])
-
-	if roleCell and showTeamName and not data.teams[1] then
-		roleCell:css('margin-' .. align, '60px')
-	end
-
-	if data.teams[1] then
-		---`teamCell:newline()` does not work here ...
-		teamCell:wikitext('<br>')
-	end
-
-	return teamCell:node(roleCell)
+	return Div{
+		classes = { 'divCell Team ' .. (isOldTeam and 'OldTeam' or 'NewTeam') },
+		css = { ['text-align'] = showTeamName and align or nil },
+		children = WidgetUtil.collect(
+			teamDisplay,
+			data.teams[1] and HtmlWidgets.Br,
+			roleDisplay
+		)
+	}
 end
 
 ---@param roles string[]
 ---@param team string?
----@return Html?
+---@return Widget?
 function TransferRowWidget:_createRole(roles, team)
-	if Logic.isEmpty(roles) then return end
-
-	local rolesText = table.concat(Array.filter(roles, Logic.isNotEmpty), '/')
-
-	local roleCell = mw.html.create('span')
-		:css('font-style', 'italic')
-
-	if Logic.isEmpty(team) then
-		return roleCell:wikitext(rolesText)
-	end
-
-	return roleCell
-		:css('font-size', '85%')
-		:wikitext('(' .. rolesText .. ')')
+	return TransferRoleWidget{roles = roles, team = team}
 end
 
 ---@return Widget
@@ -362,7 +355,7 @@ function TransferRowWidget:icon()
 	return iconCell
 end
 
----@return Html
+---@return Widget
 function TransferRowWidget:to()
 	return self:_displayTeam{
 		data = self.transfer.to,
