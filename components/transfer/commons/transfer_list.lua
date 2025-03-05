@@ -378,7 +378,7 @@ end
 function TransferList:_buildHeader()
 	return Div{
 		classes = { 'divHeaderRow' },
-		children = {
+		children = WidgetUtil.collect(
 			Div{
 				classes = { 'divCell Date' },
 				children = { 'Date' }
@@ -407,8 +407,8 @@ function TransferList:_buildHeader()
 						children = { Abbreviation.make('Ref', 'Reference') }
 					}
 				}
-			},
-		}
+			}
+		)
 	}
 end
 

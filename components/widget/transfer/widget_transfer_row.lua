@@ -351,7 +351,7 @@ function TransferRowWidget:icon()
 			'&nbsp;' .. getIcon(player.icons[2] or targetRoleIsSpecialRole and player.icons[1] or nil)
 	end)
 
-	iconCell.props.children = { table.concat(iconRows, '<br>') }
+	iconCell.props.children = Array.interleave(iconRows, '<br>')
 	return iconCell
 end
 
@@ -368,7 +368,7 @@ end
 function TransferRowWidget:references()
 	return Div{
 		classes = { 'divCell Ref' },
-		children = { table.concat(self.transfer.references, '<br>') }
+		children = Array.interleave(self.transfer.references, '<br>')
 	}
 end
 
