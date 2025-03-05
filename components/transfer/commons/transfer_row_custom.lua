@@ -16,13 +16,13 @@ local TransferRow = Lua.import('Module:TransferRow')
 local CustomTransferRow = Class.new(TransferRow)
 
 ---@param frame Frame
----@return Html?
+---@return Widget?
 function CustomTransferRow.transfer(frame)
 	return CustomTransferRow(Arguments.getArgs(frame)):read():store():build()
 end
 
 ---@param frame Frame
----@return Html?
+---@return Widget?
 function CustomTransferRow.rumour(frame)
 	frame.args.isRumour = true
 	return CustomTransferRow.transfer(frame)

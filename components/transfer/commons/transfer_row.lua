@@ -21,7 +21,7 @@ local Variables = require('Module:Variables')
 
 local PlayerExt = Lua.import('Module:Player/Ext/Custom')
 local PositionConvert = Lua.requireIfExists('Module:PositionName/data', {loadData = true})
-local TransferRowDisplay = Lua.import('Module:TransferRow/Display')
+local TransferRowWidget = Lua.import('Module:Widget/Transfer/Row')
 local References = Lua.import('Module:Transfer/References')
 
 local HAS_PLATFORM_ICONS = Lua.moduleExists('Module:Platform/data')
@@ -325,9 +325,9 @@ function TransferRow._objectName(transfer)
 	return 'transfer_' .. transfer.date .. '_' .. string.format('%06d', transfer.extradata.sortindex)
 end
 
----@return Html?
+---@return Widget?
 function TransferRow:build()
-	return TransferRowDisplay(self.transfers):build()
+	return TransferRowWidget{transfers = self.transfers}:render()
 end
 
 return TransferRow

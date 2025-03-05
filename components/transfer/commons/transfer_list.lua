@@ -11,6 +11,7 @@ local Arguments = require('Module:Arguments')
 local Array = require('Module:Array')
 local Class = require('Module:Class')
 local DateExt = require('Module:Date/Ext')
+local FnUtil = require('Module:FnUtil')
 local Logic = require('Module:Logic')
 local Lua = require('Module:Lua')
 local Operator = require('Module:Operator')
@@ -20,7 +21,7 @@ local Team = require('Module:Team')
 local OpponentLibraries = require('Module:OpponentLibraries')
 local Opponent = OpponentLibraries.Opponent
 
-local TransferRowDisplay = Lua.import('Module:TransferRow/Display')
+local TransferRowWidget = Lua.import('Module:Widget/Transfer/Row')
 
 local Condition = require('Module:Condition')
 local ConditionTree = Condition.Tree
@@ -28,6 +29,11 @@ local ConditionNode = Condition.Node
 local Comparator = Condition.Comparator
 local BooleanOperator = Condition.BooleanOperator
 local ColumnName = Condition.ColumnName
+
+local HtmlWidgets = Lua.import('Module:Widget/Html/All')
+local Div = HtmlWidgets.Div
+local Span = HtmlWidgets.Span
+local WidgetUtil = Lua.import('Module:Widget/Util')
 
 local HAS_PLATFORM_ICONS = Lua.moduleExists('Module:Platform/data')
 local DEFAULT_VALUES = {
@@ -310,66 +316,104 @@ function TransferList:_buildOrConditions(lpdbField, data)
 		end))
 end
 
----@return Html|string?
+---@return Widget?
 function TransferList:create()
 	local config = self.config
 	if config.showMissingResultsMessage and Logic.isDeepEmpty(self.groupedTransfers) then
-		return mw.html.create('pre'):wikitext('No results for: ' .. mw.text.nowiki(self.conditions))
+		return HtmlWidgets.Pre{
+			children = {
+				'No results for: ',
+				mw.text.nowiki(self.conditions)
+			}
+		}
 	elseif Logic.isDeepEmpty(self.groupedTransfers) then
 		return
 	end
 
-	local display = mw.html.create('div')
-		:addClass('divTable mainpage-transfer Ref')
-		:css('text-align', 'center')
-		:css('width', '100%')
-		:node(self:_buildHeader())
-
-	Array.forEach(self.groupedTransfers, function(rowData)
-		display:node(self:_buildRow(rowData))
-	end)
+	local display = Div{
+		classes = { 'divtable', 'mainpage-transfer', 'Ref' },
+		css = { ['text-align'] = 'center', width = '100%' },
+		children = WidgetUtil.collect(
+			self:_buildHeader(),
+			Array.map(self.groupedTransfers, FnUtil.curry(self._buildRow, self))
+		)
+	}
 
 	if not config.title then
 		-- for whatever reason currently class is only applied in this case ...
-		if config.class then
-			display:addClass(config.class)
-		end
-		return mw.html.create('div')
-			:node(display)
+		return Div{
+			classes = config.class,
+			children = { display }
+		}
 	end
 
-	return mw.html.create('table')
-		:css('margin-top','0px')
-		:addClass('wikitable OffSeasonOverview')
-		:addClass(config.shown and 'collapsible collapsed' or nil)
-		:tag('tr'):tag('th'):attr('colspan', 7):wikitext(config.title):allDone()
-		:tag('tr'):tag('td'):css('padding', '0'):node(display):allDone()
+	return HtmlWidgets.Table{
+		css = { ['margin-top'] = '0px' },
+		classes = {
+			'wikitable OffSeasonOverview',
+			config.shown and 'collapsible collapsed' or nil
+		},
+		children = {
+			HtmlWidgets.Tr{
+				children = {
+					HtmlWidgets.Th{
+						attributes = { colspan = 7 },
+						children = { config.title },
+					}
+				}
+			},
+			HtmlWidgets.Tr{
+				children = {
+					HtmlWidgets.Td{
+						css = { padding = 0 },
+						children = { display },
+					}
+				}
+			}
+		}
+	}
 end
 
----@return Html
+---@return Widget
 function TransferList:_buildHeader()
-	local headerRow = mw.html.create('div')
-		:addClass('divHeaderRow')
-		:tag('div'):addClass('divCell Date'):wikitext('Date'):allDone()
-
-	if HAS_PLATFORM_ICONS then
-		headerRow:tag('div'):addClass('divCell GameIcon')
-	end
-
-	return headerRow
-		:tag('div'):addClass('divCell Name'):wikitext('Player'):done()
-		:tag('div'):addClass('divCell Team OldTeam'):wikitext('Old'):done()
-		:tag('div'):addClass('divCell Icon'):done()
-		:tag('div'):addClass('divCell Team NewTeam'):wikitext('New'):done()
-		:tag('div'):addClass('divCell Empty')
-			:tag('span')
-				:addClass('mobile-hide')
-				:wikitext(Abbreviation.make('Ref', 'Reference'))
-		:allDone()
+	return Div{
+		classes = { 'divHeaderRow' },
+		children = {
+			Div{
+				classes = { 'divCell Date' },
+				children = { 'Date' }
+			},
+			HAS_PLATFORM_ICONS and Div{
+				classes = { 'divCell GameIcon' },
+			} or nil,
+			Div{
+				classes = { 'divCell Name' },
+				children = { 'Player' }
+			},
+			Div{
+				classes = { 'divCell Team OldTeam' },
+				children = { 'Old' }
+			},
+			Div{ classes = { 'divCell Icon' } },
+			Div{
+				classes = { 'divCell Team NewTeam' },
+				children = { 'New' }
+			},
+			Div{
+				classes = { 'divCell Empty' },
+				children = {
+					Span{
+						classes = { 'mobile-hide' },
+						children = { Abbreviation.make('Ref', 'Reference') }
+					}
+				}
+			},
+		}
+	}
 end
 
 ---@param transfers transfer[]
----@return Html?
+---@return TransferRowWidget?
 function TransferList:_buildRow(transfers)
 	local firstTransfer = transfers[1]
 	if not firstTransfer then
@@ -385,7 +429,7 @@ function TransferList:_buildRow(transfers)
 		firstTransfer.role2 = nil
 	end
 
-	return TransferRowDisplay(transfers):build()
+	return TransferRowWidget{transfers}
 end
 
 return TransferList
