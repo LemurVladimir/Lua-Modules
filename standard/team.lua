@@ -70,23 +70,23 @@ local p = {
 	['team'] = function (_, name, date)
 		return getTemplate('team', name, date) or getNullMessage(name)
 	end,
-	
+
 	['team2'] = function (_, name, date)
 		return getTemplate('team2', name, date) or getNullMessage(name)
 	end,
-	
+
 	['short'] = function (_, name, date)
 		return getTemplate('teamshort', name, date) or ('<div class="error">' .. name .. ' (missing)</div>' .. '[[Category:Pages with missing team templates]]')
 	end,
-	
+
 	['short2'] = function (_, name, date)
 		return getTemplate('team2short', name, date) or ('<span class="error">(missing) ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]')
 	end,
-	
+
 	['bracket'] = function (_, name, date, skipOverride)
 		return getTemplate('teambracket', name, date, skipOverride) or ('<span class="error">Missing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]')
 	end,
-	
+
 	['bracketShort'] = function (_, name, date, skipOverride)
 		if not(skipOverride) then
 			local override = getOverride('teambracket', name, date)
@@ -105,11 +105,11 @@ local p = {
 			return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-bracket"><span class="team-template-image-legacy">[[File:' .. output.legacyimage .. '|link=]]</span> <span class="team-template-text">' .. output.shortname .. '</span></span>'
 		end
 	end,
-	
+
 	['icon'] = function (_, name, date)
 		return getTemplate('teamicon', name, date) or getNullMessage(name)
 	end,
-	
+
 	['iconFile'] = function (_, name, date)
 		local output = getOverride('iconfile', name, date)
 		if output then return output
@@ -121,7 +121,7 @@ local p = {
 		end
 		return output.image ~= '' and output.image or output.legacyimage
 	end,
-	
+
 	['imageFile'] = function (_, name, date)
 		local output
 		if mw.ext.TeamTemplate.teamexists(name) then output = mw.ext.TeamTemplate.raw(name, date or getGlobalDate())
@@ -132,7 +132,7 @@ local p = {
 		end
 		return output.image ~= '' and output.image or nil
 	end,
-	
+
 	['imageFileDark'] = function (_, name, date)
 		local output
 		if mw.ext.TeamTemplate.teamexists(name) then output = mw.ext.TeamTemplate.raw(name, date or getGlobalDate())
@@ -143,11 +143,11 @@ local p = {
 		end
 		return (output.imagedark ~= '' and output.imagedark) or (output.image ~= '' and output.image) or nil
 	end,
-	
+
 	['part'] = function (_, name, date)
 		return getTemplate('teampart', name, date) or getNullMessage(name)
 	end,
-	
+
 	['page'] = function (_, name, date)
 		local override = getOverride('teampage', name, date)
 		if override then return override
@@ -158,19 +158,19 @@ local p = {
 		else return name
 		end
 	end,
-	
+
 	['shortname'] = function (_, name, date)
 		return (getTemplate('raw', name, date) or {}).shortname or getNullMessage(name)
 	end,
-	
+
 	['name'] = function (_, name, date)
 		return (getTemplate('raw', name, date) or {}).name or getNullMessage(name)
 	end,
-	
+
 	['template'] = function (_, name, date)
 		return (getTemplate('raw', name, date) or {}).templatename or getNullMessage(name)
 	end,
-	
+
 	['bracketname'] = function (_, name, date, skipOverride)
 		if not(skipOverride) then
 			local override = getOverride('teambracket', name, date)
@@ -189,7 +189,7 @@ local p = {
 			return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-short"><span class="team-template-image-legacy">[[File:' .. output.legacyimage .. '|link=' .. name .. ']]</span> <span class="team-template-text">[[' .. output.bracketname .. ']]</span>'
 		end
 	end,
-	
+
 	['override'] = getOverride,
 }
 
