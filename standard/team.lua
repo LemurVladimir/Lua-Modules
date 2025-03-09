@@ -108,20 +108,20 @@ function Team.override(form, name, data)
 	end
 end
 
----@param form string
+---@param type 'team'|'team2'|'teamshort'|'team2short'|'teambracket'|'teamicon'|'teampart'
 ---@param name string
----@param date string
----@param skipOverride boolean?
----@return teamTemplateData|string?
-function Team._getTemplate(form, name, date, skipOverride)
+---@param date string|number?
+---@return string
+---@overload fun(type: 'raw', name: string, date: string|number?): teamTemplateData?
+function Team._getTemplate(type, name, date, skipOverride)
 	if not(skipOverride) then
-		local override = Team.override(form, name, date)
+		local override = Team.override(type, name, date)
 		if override then
 			return override
 		end
 	end
 	local processedName = Team._preprocessTeamTemplateName(name)
-	return processedName and mw.ext.TeamTemplate[form](processedName, date or DateExt.getContextualDateOrNow()) or nil
+	return processedName and mw.ext.TeamTemplate[type](processedName, date or DateExt.getContextualDateOrNow()) or nil
 end
 
 function Team.team(_, name, date)
