@@ -138,15 +138,15 @@ function Team.short(_, name, date)
 	)
 end
 
-function Team.short2 (_, name, date)
+function Team.short2(_, name, date)
 	return Team._getTemplate('team2short', name, date) or (
-		'<span class="error">(missing) ' .. name .. '</span' .. '[[Category:Pages with missing team templates]]'
+		'<span class="error">(missing) ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]'
 	)
 end
 
 function Team.bracket(_, name, date, skipOverride)
 	return Team._getTemplate('teambracket', name, date, skipOverride) or (
-		'<span class="error">issing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]'
+		'<span class="error">Missing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]'
 	)
 end
 
