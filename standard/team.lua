@@ -6,11 +6,13 @@
 -- Please see https://github.com/Liquipedia/Lua-Modules to contribute
 --
 
+local Array = require('Module:Array')
 local Class = require('Module:Class')
 local DateExt = require('Module:Date/Ext')
+local FnUtil = require('Module:FnUtil')
 local Logic = require('Module:Logic')
-local Set = require('Module:Set')
 local String = require('Module:StringUtils')
+local Table = require('Module:Table')
 
 local function getNullMessage(name)
 	mw.log('Missing team: ' .. name)
@@ -65,6 +67,11 @@ function p.override(form, name, data)
 	end
 end
 
+---@param form string
+---@param name string
+---@param date string
+---@param skipOverride boolean?
+---@return teamTemplateData|string?
 function p._getTemplate(form, name, date, skipOverride)
 	if not(skipOverride) then
 		local override = p.override(form, name, date)
@@ -130,7 +137,7 @@ function p.bracketShort(_, name, date, skipOverride)
 		return '<span class="error">Missing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]'
 	end
 	if String.isNotEmpty(output.image) then
-		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-bracket"><span class="team-template-image-icon lightmode">[[File:' .. output.image .. '|100x50px|link=]]</span><span class="team-template-image-icon darkmode" style="display:none">[[File:' .. (output.imagedark ~= '' and output.imagedark or output.image) .. '|100x50px|link=]]</span> <span class="team-template-text">' .. output.shortname .. '</span></span>'
+		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-bracket"><span class="team-template-image-icon lightmode">[[File:' .. output.image .. '|100x50px|link=]]</span><span class="team-template-image-icon darkmode" style="display:none">[[File:' .. Logic.emptyOr(output.imagedark, output.image) .. '|100x50px|link=]]</span> <span class="team-template-text">' .. output.shortname .. '</span></span>'
 	else
 		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-bracket"><span class="team-template-image-legacy">[[File:' .. output.legacyimage .. '|link=]]</span> <span class="team-template-text">' .. output.shortname .. '</span></span>'
 	end
@@ -241,7 +248,8 @@ function p.bracketname(_, name, date, skipOverride)
 		output = mw.ext.TeamTemplate.raw(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
 	else
 		mw.log('Missing team: ' .. name)
-		return '<span class="error">Missing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]'
+		mw.ext.TeamLiquidIntegration.add_category('Pages with missing team templates')
+		return '<span class="error">Missing: ' .. name .. '</span>'
 	end
 	if String.isNotEmpty(output.image) then
 		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-short"><span class="team-template-image-icon">[[File:' .. output.image .. '|link=' .. name .. ']]</span> <span class="team-template-text">[[' .. output.bracketname .. ']]</span></span>'
@@ -258,7 +266,8 @@ function p.get(frame)
 	if args[1] then
 		return p[args[1]](frame, args[2] or '', args[3])
 	else
-		return '<span class="error">Invalid team template form specified.</span>' .. '[[Category:Pages with invalid team templates]]'
+		mw.ext.TeamLiquidIntegration.add_category('Pages with invalid team templates')
+		return '<span class="error">Invalid team template form specified.</span>'
 	end
 end
 
@@ -270,6 +279,9 @@ function p.queryDB(type, name, date)
 	end
 end
 
+---@param name string
+---@param date string|number?
+---@return teamTemplateData?
 function p.queryRaw(name, date)
 	if mw.ext.TeamTemplate.teamexists(name) then
 		return mw.ext.TeamTemplate.raw(name, date)
@@ -278,21 +290,22 @@ function p.queryRaw(name, date)
 	end
 end
 
+---@param name string
+---@return {[string]: string}?
 function p.queryHistorical(name)
 	return mw.ext.TeamTemplate.raw_historical(name)
 end
 
+---@param name string
+---@return string[]|nil
 function p.queryHistoricalNames(name)
 	if mw.ext.TeamTemplate.teamexists(name) then
-		local index = mw.ext.TeamTemplate.raw_historical(name)
-		if index then
-			local set = Set{}
-			for _, template in pairs(index) do
-				set:add(mw.ext.TeamTemplate.teampage(template))
-			end
-			return set:toArray()
+		local index = p.queryHistorical(name)
+		if Logic.isNotEmpty(index) then
+			local templates = Table.mapValues(index, FnUtil.identity)
+			return Array.unique(templates)
 		else
-			return {mw.ext.TeamTemplate.teampage(name)}
+			return { mw.ext.TeamTemplate.teampage(name) }
 		end
 	else
 		return nil
