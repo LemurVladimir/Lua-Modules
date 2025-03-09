@@ -15,6 +15,7 @@ local Image = require('Module:Image')
 local Logic = require('Module:Logic')
 local String = require('Module:StringUtils')
 local Table = require('Module:Table')
+local Variables = require('Module:Variables')
 
 local function getNullMessage(name)
 	mw.log('Missing team: ' .. name)
@@ -86,7 +87,7 @@ function p.override(form, name, data)
 	if overrides.templates[name:lower()] then
 		return overrides.templates[name:lower()][form:lower()]
 	elseif overrides.game[name:lower()] and data then
-		return custom[form:lower()](data, overrides.games[mw.ext.VariablesLua.var('tournament_game', ''):lower()])
+		return custom[form:lower()](data, overrides.games[Variables.varDefault('tournament_game', ''):lower()])
 	elseif overrides.games[name:lower()] and data then
 		return custom[form:lower()](data, overrides.games[name:lower()])
 	elseif name:lower() == 'noteam' then
