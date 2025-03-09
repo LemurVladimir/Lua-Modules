@@ -13,9 +13,12 @@ local DateExt = require('Module:Date/Ext')
 local FnUtil = require('Module:FnUtil')
 local Image = require('Module:Image')
 local Logic = require('Module:Logic')
+local Lua = require('Module:Lua')
 local String = require('Module:StringUtils')
 local Table = require('Module:Table')
 local Variables = require('Module:Variables')
+
+local Overrides = Lua.import('Module:Team/override', { loadData = true })
 
 local function getNullMessage(name)
 	mw.log('Missing team: ' .. name)
@@ -92,15 +95,14 @@ function Team.override(form, name, data)
 	if name == nil then
 		return nil
 	end
-	local overrides = mw.loadData('Module:Team/override')
-	if overrides.templates[name:lower()] then
-		return overrides.templates[name:lower()][form:lower()]
-	elseif overrides.game[name:lower()] and data then
-		return custom[form:lower()](data, overrides.games[Variables.varDefault('tournament_game', ''):lower()])
-	elseif overrides.games[name:lower()] and data then
-		return custom[form:lower()](data, overrides.games[name:lower()])
+	if Overrides.templates[name:lower()] then
+		return Overrides.templates[name:lower()][form:lower()]
+	elseif Overrides.game[name:lower()] and data then
+		return custom[form:lower()](data, Overrides.games[Variables.varDefault('tournament_game', ''):lower()])
+	elseif Overrides.games[name:lower()] and data then
+		return custom[form:lower()](data, Overrides.games[name:lower()])
 	elseif name:lower() == 'noteam' then
-		return overrides.templates[''][form:lower()]
+		return Overrides.templates[''][form:lower()]
 	else
 		return nil
 	end
@@ -186,7 +188,7 @@ function Team.iconFile(_, name, date)
 	local processedName = Team._preprocessTeamTemplateName(name)
 	if not processedName then
 		mw.log('Missing team: ' .. name .. ' (icon)')
-		return mw.loadData('Module:Team/override').games['']
+		return Overrides.games['']
 	end
 	output = Team.queryRaw(processedName, date or DateExt.getContextualDateOrNow()) or {}
 	return Logic.emptyOr(output.image, output.legacyimage)
@@ -249,7 +251,7 @@ function Team.bracketname(_, name, date, skipOverride)
 	local processedName = Team._preprocessTeamTemplateName(name)
 	if not processedName then
 		mw.log('Missing team: ' .. name .. ' (icon)')
-		return mw.loadData('Module:Team/override').games['']
+		return Overrides.games['']
 	end
 	local output = Team.queryRaw(processedName, date or DateExt.getContextualDateOrNow()) or {}
 	if String.isNotEmpty(output.image) then
