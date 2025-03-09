@@ -8,7 +8,9 @@
 
 local Class = require('Module:Class')
 local DateExt = require('Module:Date/Ext')
+local Logic = require('Module:Logic')
 local Set = require('Module:Set')
+local String = require('Module:StringUtils')
 
 local function getNullMessage(name)
 	mw.log('Missing team: ' .. name)
@@ -110,13 +112,19 @@ function p.bracketShort(_, name, date, skipOverride)
 		if override then return override end
 	end
 	local output
-	if mw.ext.TeamTemplate.teamexists(name) then output = mw.ext.TeamTemplate.raw(name, date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then output = mw.ext.TeamTemplate.raw(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then output = mw.ext.TeamTemplate.raw(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then output = mw.ext.TeamTemplate.raw(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
-	else mw.log('Missing team: ' .. name) return '<span class="error">Missing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]'
+	if mw.ext.TeamTemplate.teamexists(name) then
+		output = mw.ext.TeamTemplate.raw(name, date or DateExt.getContextualDateOrNow())
+	elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then
+		output = mw.ext.TeamTemplate.raw(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
+	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then
+		output = mw.ext.TeamTemplate.raw(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
+	elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then
+		output = mw.ext.TeamTemplate.raw(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
+	else
+		mw.log('Missing team: ' .. name)
+		return '<span class="error">Missing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]'
 	end
-	if output.image ~= '' then
+	if String.isNotEmpty(output.image) then
 		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-bracket"><span class="team-template-image-icon lightmode">[[File:' .. output.image .. '|100x50px|link=]]</span><span class="team-template-image-icon darkmode" style="display:none">[[File:' .. (output.imagedark ~= '' and output.imagedark or output.image) .. '|100x50px|link=]]</span> <span class="team-template-text">' .. output.shortname .. '</span></span>'
 	else
 		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-bracket"><span class="team-template-image-legacy">[[File:' .. output.legacyimage .. '|link=]]</span> <span class="team-template-text">' .. output.shortname .. '</span></span>'
@@ -142,7 +150,7 @@ function p.iconFile(_, name, date)
 		mw.log('Missing team: ' .. name .. ' (icon)')
 		return mw.loadData('Module:Team/override').games['']
 	end
-	return output.image ~= '' and output.image or output.legacyimage
+	return Logic.emptyOr(output.image, output.legacyimage)
 end
 
 function p.imageFile(_, name, date)
@@ -159,7 +167,7 @@ function p.imageFile(_, name, date)
 		mw.log('Missing team: ' .. name .. ' (icon)')
 		return nil
 	end
-	return output.image ~= '' and output.image or nil
+	return Logic.emptyOr(output.image)
 end
 
 function p.imageFileDark(_, name,date)
@@ -176,7 +184,7 @@ function p.imageFileDark(_, name,date)
 		mw.log('Missing team: ' .. name .. ' (icon)')
 		return nil
 	end
-	return (output.imagedark ~= '' and output.imagedark) or (output.image ~= '' and output.image) or nil
+	return Logic.emptyOr(output.imagedark, output.image)
 end
 
 function p.part(_, name, date)
@@ -218,13 +226,19 @@ function p.bracketname(_, name, date, skipOverride)
 		if override then return override end
 	end
 	local output
-	if mw.ext.TeamTemplate.teamexists(name) then output = mw.ext.TeamTemplate.raw(name, date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then output = mw.ext.TeamTemplate.raw(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then output = mw.ext.TeamTemplate.raw(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then output = mw.ext.TeamTemplate.raw(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
-	else mw.log('Missing team: ' .. name) return '<span class="error">Missing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]'
+	if mw.ext.TeamTemplate.teamexists(name) then
+		output = mw.ext.TeamTemplate.raw(name, date or DateExt.getContextualDateOrNow())
+	elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then
+		output = mw.ext.TeamTemplate.raw(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
+	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then
+		output = mw.ext.TeamTemplate.raw(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
+	elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then
+		output = mw.ext.TeamTemplate.raw(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
+	else
+		mw.log('Missing team: ' .. name)
+		return '<span class="error">Missing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]'
 	end
-	if output.image ~= '' then
+	if String.isNotEmpty(output.image) then
 		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-short"><span class="team-template-image-icon">[[File:' .. output.image .. '|link=' .. name .. ']]</span> <span class="team-template-text">[[' .. output.bracketname .. ']]</span></span>'
 	else
 		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-short"><span class="team-template-image-legacy">[[File:' .. output.legacyimage .. '|link=' .. name .. ']]</span> <span class="team-template-text">[[' .. output.bracketname .. ']]</span>'
