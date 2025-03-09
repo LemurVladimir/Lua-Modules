@@ -6,6 +6,7 @@
 -- Please see https://github.com/Liquipedia/Lua-Modules to contribute
 --
 
+local Arguments = require('Module:Arguments')
 local Array = require('Module:Array')
 local Class = require('Module:Class')
 local DateExt = require('Module:Date/Ext')
@@ -259,10 +260,7 @@ function p.bracketname(_, name, date, skipOverride)
 end
 
 function p.get(frame)
-	local args = {}
-	for k, v in pairs(frame.args) do
-		if v ~= '' then args[k] = mw.text.trim(v) end
-	end
+	local args = Arguments.getArgs(frame)
 	if args[1] then
 		return p[args[1]](frame, args[2] or '', args[3])
 	else
