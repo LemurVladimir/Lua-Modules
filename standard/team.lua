@@ -17,7 +17,8 @@ local Table = require('Module:Table')
 
 local function getNullMessage(name)
 	mw.log('Missing team: ' .. name)
-	return '<small class="error">No team template exists for name "' .. name .. '".</small>' .. '[[Category:Pages with missing team templates]]'
+	mw.ext.TeamLiquidIntegration.add_category('Pages with missing team templates')
+	return '<small class="error">No team template exists for name "' .. name .. '".</small>'
 end
 
 local custom = {
@@ -259,6 +260,8 @@ function p.bracketname(_, name, date, skipOverride)
 	end
 end
 
+---@param frame Frame
+---@return string
 function p.get(frame)
 	local args = Arguments.getArgs(frame)
 	if args[1] then
@@ -269,6 +272,10 @@ function p.get(frame)
 	end
 end
 
+---@param type string
+---@param name string
+---@param date string|number?
+---@return string|teamTemplateData?
 function p.queryDB(type, name, date)
 	if mw.ext.TeamTemplate.teamexists(name) then
 		return mw.ext.TeamTemplate[type](name, date)
