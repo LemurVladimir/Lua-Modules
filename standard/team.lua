@@ -1,3 +1,14 @@
+---
+-- @Liquipedia
+-- wiki=commons
+-- page=Module:Team
+--
+-- Please see https://github.com/Liquipedia/Lua-Modules to contribute
+--
+
+local Class = require('Module:Class')
+local Set = require('Module:Set')
+
 local function getGlobalDate()
 	local globalDate = mw.ext.VariablesLua.var('date')
 	if not(globalDate and globalDate ~= '') then
@@ -225,9 +236,7 @@ function p.queryHistorical(name)
 	return mw.ext.TeamTemplate.raw_historical(name)
 end
 
-local Set
 function p.queryHistoricalNames(name)
-	if not Set then Set = require('Module:Set') end
 	if mw.ext.TeamTemplate.teamexists(name) then
 		local index = mw.ext.TeamTemplate.raw_historical(name)
 		if index then
@@ -244,4 +253,4 @@ function p.queryHistoricalNames(name)
 	end
 end
 
-return p
+return Class.export(p)
