@@ -39,7 +39,8 @@ local custom = {
 		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-short"><span class="team-template-text">[[' .. name .. ']]</span> <span class="team-template-image-icon">' .. Image.display(img, nil, {size='100x50px', link=name}) .. '</span></span>'
 	end,
 	['teambracket'] = function (name, img)
-		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-bracket"><span class="team-template-image-icon">[[File:' .. img .. '|100x50px|link=|' .. name .. ']]</span> <span class="team-template-text">' .. name .. '</span></span>'
+		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-bracket"><span class="team-template-image-icon">' ..
+			Image.display(img, nil, {size = '100x50px', link = name}) .. '</span> <span class="team-template-text">' .. name .. '</span></span>'
 	end,
 	['teamicon'] = function (name, img)
 		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-icon"><span class="team-template-image-icon">' ..
@@ -150,7 +151,8 @@ function p.bracketShort(_, name, date, skipOverride)
 			Image.display(output.image, nil, {size = '100x50px', link = ''}) .. '</span><span class="team-template-image-icon darkmode" style="display:none">' ..
 			Image.display(Logic.emptyOr(output.imagedark, output.image), nil, {size = '100x50px', link = ''}) .. '</span> <span class="team-template-text">' .. output.shortname .. '</span></span>'
 	else
-		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-bracket"><span class="team-template-image-legacy">[[File:' .. output.legacyimage .. '|link=]]</span> <span class="team-template-text">' .. output.shortname .. '</span></span>'
+		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-bracket"><span class="team-template-image-legacy">' ..
+			Image.display(output.legacyimage, nil, {link = ''}) .. '</span> <span class="team-template-text">' .. output.shortname .. '</span></span>'
 	end
 end
 
@@ -233,9 +235,11 @@ function p.bracketname(_, name, date, skipOverride)
 	end
 	local output = p.queryRaw(processedName, date or DateExt.getContextualDateOrNow()) or {}
 	if String.isNotEmpty(output.image) then
-		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-short"><span class="team-template-image-icon">[[File:' .. output.image .. '|link=' .. name .. ']]</span> <span class="team-template-text">[[' .. output.bracketname .. ']]</span></span>'
+		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-short"><span class="team-template-image-icon">' ..
+			Image.display(output.image, nil, {link = name}) .. '</span> <span class="team-template-text">[[' .. output.bracketname .. ']]</span></span>'
 	else
-		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-short"><span class="team-template-image-legacy">[[File:' .. output.legacyimage .. '|link=' .. name .. ']]</span> <span class="team-template-text">[[' .. output.bracketname .. ']]</span>'
+		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-short"><span class="team-template-image-legacy">' ..
+			Image.display(output.legacyimage, nil, {link = name}) .. '</span> <span class="team-template-text">[[' .. output.bracketname .. ']]</span>'
 	end
 end
 
