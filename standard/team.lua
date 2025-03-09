@@ -46,7 +46,9 @@ local custom = {
 } --[[@as table<string, (fun(name:string, img:string): string)> ]]
 
 local function getOverride(form, name, data)
-	if name == nil then return nil end
+	if name == nil then
+		return nil
+	end
 	local overrides = mw.loadData('Module:Team/override')
 	if overrides.templates[name:lower()] then
 		return overrides.templates[name:lower()][form:lower()]
@@ -64,7 +66,9 @@ end
 local function getTemplate(form, name, date, skipOverride)
 	if not(skipOverride) then
 		local override = getOverride(form, name, date)
-		if override then return override end
+		if override then
+			return override
+		end
 	end
 	if mw.ext.TeamTemplate.teamexists(name) then
 		return mw.ext.TeamTemplate[form](name, date or DateExt.getContextualDateOrNow())
