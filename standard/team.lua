@@ -56,6 +56,28 @@ local custom = {
 
 local p = {}
 
+---@param name string
+---@return string|nil
+function p._preprocessTeamTemplateName(name)
+	if mw.ext.TeamTemplate.teamexists(name) then
+		return name
+	elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name))then
+		mw.log("Trimmed needed on team name: ".. name)
+		return mw.text.trim(name)
+	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then
+		mw.log("Underscore in team name: ".. name)
+		mw.ext.TeamLiquidIntegration.add_category('Pages with underscore team templates')
+		local sub_name = name:gsub("_", " ")
+		return sub_name
+	elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then
+		mw.log("Underscore in team name: ".. name)
+		mw.ext.TeamLiquidIntegration.add_category('Pages with underscore team templates')
+		local sub_name = name:gsub(" ", "_")
+		return sub_name
+	end
+	return nil
+end
+
 function p.override(form, name, data)
 	if name == nil then
 		return nil
@@ -86,23 +108,8 @@ function p._getTemplate(form, name, date, skipOverride)
 			return override
 		end
 	end
-	if mw.ext.TeamTemplate.teamexists(name) then
-		return mw.ext.TeamTemplate[form](name, date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name))then
-		mw.log("Trimmed needed on team name: ".. name)
-		mw.ext.TeamLiquidIntegration.add_category('Pages with trimmed team templates')
-		return mw.ext.TeamTemplate[form](mw.text.trim(name), date or DateExt.getContextualDaeOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then
-		mw.log("Underscore in team name: ".. name)
-		mw.ext.TeamLiquidIntegration.add_category('Pages with underscore team templates')
-		return mw.ext.TeamTemplate[form]((name:gsub("_", " ")), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then
-		mw.log("Underscore in team name: ".. name)
-		mw.ext.TeamLiquidIntegration.add_category('Pages with underscore team templates')
-		return mw.ext.TeamTemplate[form]((name:gsub(" ", "_")), date or DateExt.getContextualDateOrNow())
-	else
-		return nil
-	end
+	local processedName = p._preprocessTeamTemplateName(name)
+	return processedName and mw.ext.TeamTemplate[form](processedName, date or DateExt.getContextualDateOrNow()) or nil
 end
 
 function p.team(_, name, date)
@@ -130,19 +137,13 @@ function p.bracketShort(_, name, date, skipOverride)
 		local override = p.override('teambracket', name, date)
 		if override then return override end
 	end
-	local output
-	if mw.ext.TeamTemplate.teamexists(name) then
-		output = p.queryRaw(name, date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then
-		output = p.queryRaw(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then
-		output = p.queryRaw(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then
-		output = p.queryRaw(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
-	else
+	local processedName = p._preprocessTeamTemplateName(name)
+	if not processedName then
 		mw.log('Missing team: ' .. name)
-		return '<span class="error">Missing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]'
+		mw.ext.TeamLiquidIntegration.add_category('Pages with missing team templates')
+		return '<span class="error">Missing: ' .. name .. '</span>'
 	end
+	local output = p.queryRaw(processedName, date or DateExt.getContextualDateOrNow()) or {}
 	if String.isNotEmpty(output.image) then
 		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-bracket"><span class="team-template-image-icon lightmode">' ..
 			Image.display(output.image, nil, {size = '100x50px', link = ''}) .. '</span><span class="team-template-image-icon darkmode" style="display:none">' ..
@@ -158,53 +159,35 @@ end
 
 function p.iconFile(_, name, date)
 	local output = p.override('iconfile', name, date)
-	if output then return output
-	elseif mw.ext.TeamTemplate.teamexists(name) then
-		output = p.queryRaw(name, date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then
-		output = p.queryRaw(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then
-		output = p.queryRaw(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then
-		output = p.queryRaw(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
-	else
+	if output then
+		return output
+	end
+	local processedName = p._preprocessTeamTemplateName(name)
+	if not processedName then
 		mw.log('Missing team: ' .. name .. ' (icon)')
 		return mw.loadData('Module:Team/override').games['']
 	end
+	output = p.queryRaw(processedName, date or DateExt.getContextualDateOrNow()) or {}
 	return Logic.emptyOr(output.image, output.legacyimage)
 end
 
 function p.imageFile(_, name, date)
-	local output
-	if mw.ext.TeamTemplate.teamexists(name) then
-		output = p.queryRaw(name, date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then
-		output = p.queryRaw(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then
-		output = p.queryRaw(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then
-		output = p.queryRaw(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
-	else
+	local processedName = p._preprocessTeamTemplateName(name)
+	if not processedName then
 		mw.log('Missing team: ' .. name .. ' (icon)')
 		return nil
 	end
+	local output = p.queryRaw(processedName, date or DateExt.getContextualDateOrNow()) or {}
 	return Logic.emptyOr(output.image)
 end
 
 function p.imageFileDark(_, name,date)
-	local output
-	if mw.ext.TeamTemplate.teamexists(name) then
-		output = p.queryRaw(name, date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then
-		output = p.queryRaw(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then
-		output = p.queryRaw(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then
-		output = p.queryRaw(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
-	else
+	local processedName = p._preprocessTeamTemplateName(name)
+	if not processedName then
 		mw.log('Missing team: ' .. name .. ' (icon)')
 		return nil
 	end
+	local output = p.queryRaw(processedName, date or DateExt.getContextualDateOrNow()) or {}
 	return Logic.emptyOr(output.imagedark, output.image)
 end
 
@@ -216,29 +199,25 @@ function p.page(_, name, date)
 	local override = p.override('teampage', name, date)
 	if override then
 		return override
-	elseif mw.ext.TeamTemplate.teamexists(name) then
-		return mw.ext.TeamTemplate.teampage(name, date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then
-		return mw.ext.TeamTemplate.teampage(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then
-		return mw.ext.TeamTemplate.teampage(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then
-		return mw.ext.TeamTemplate.teampage(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
+	end
+	local processedName = p._preprocessTeamTemplateName(name)
+	if processedName then
+		return mw.ext.TeamTemplate.teampage(processedName, date or DateExt.getContextualDateOrNow())
 	else
 		return name
 	end
 end
 
 function p.shortname(_, name, date)
-	return (p._getTemplate('raw', name, date) or {}).shortname or getNullMessage(name)
+	return (p.queryRaw(name, date) or {}).shortname or getNullMessage(name)
 end
 
 function p.name(_, name, date)
-	return (p._getTemplate('raw', name, date) or {}).name or getNullMessage(name)
+	return (p.queryRaw(name, date) or {}).name or getNullMessage(name)
 end
 
 function p.template(_, name, date)
-	return (p._getTemplate('raw', name, date) or {}).templatename or getNullMessage(name)
+	return (p.queryRaw(name, date) or {}).templatename or getNullMessage(name)
 end
 
 function p.bracketname(_, name, date, skipOverride)
@@ -246,20 +225,12 @@ function p.bracketname(_, name, date, skipOverride)
 		local override = p.override('teambracket', name, date)
 		if override then return override end
 	end
-	local output
-	if mw.ext.TeamTemplate.teamexists(name) then
-		output = p.queryRaw(name, date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then
-		output = p.queryRaw(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then
-		output = p.queryRaw(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then
-		output = p.queryRaw(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
-	else
-		mw.log('Missing team: ' .. name)
-		mw.ext.TeamLiquidIntegration.add_category('Pages with missing team templates')
-		return '<span class="error">Missing: ' .. name .. '</span>'
+	local processedName = p._preprocessTeamTemplateName(name)
+	if not processedName then
+		mw.log('Missing team: ' .. name .. ' (icon)')
+		return mw.loadData('Module:Team/override').games['']
 	end
+	local output = p.queryRaw(processedName, date or DateExt.getContextualDateOrNow()) or {}
 	if String.isNotEmpty(output.image) then
 		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-short"><span class="team-template-image-icon">[[File:' .. output.image .. '|link=' .. name .. ']]</span> <span class="team-template-text">[[' .. output.bracketname .. ']]</span></span>'
 	else
@@ -312,7 +283,7 @@ end
 ---@return string[]|nil
 function p.queryHistoricalNames(name)
 	if mw.ext.TeamTemplate.teamexists(name) then
-		local index = p.queryHistorical(name)
+		local index = p.queryHistorical(name) or {}
 		if Logic.isNotEmpty(index) then
 			local templates = Table.mapValues(index, FnUtil.identity)
 			return Array.unique(templates)
