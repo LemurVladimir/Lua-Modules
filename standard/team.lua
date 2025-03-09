@@ -39,7 +39,7 @@ local custom = {
 	end,
 	['teamshort'] = function (name, img)
 		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-short">' ..
-			'<span class="team-template-image-icon">' ..Image.display(img, nil, {size = '100x50px', link = name}) ..
+			'<span class="team-template-image-icon">' .. Image.display(img, nil, {size = '100x50px', link = name}) ..
 			'</span> <span class="team-template-text">[[' .. name .. ']]</span></span>'
 	end,
 	['team2short'] = function (name, img)
