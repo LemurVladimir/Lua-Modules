@@ -62,9 +62,9 @@ local p = {}
 function p._preprocessTeamTemplateName(name)
 	if mw.ext.TeamTemplate.teamexists(name) then
 		return name
-	elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name))then
+	elseif mw.ext.TeamTemplate.teamexists(String.trim(name))then
 		mw.log("Trimmed needed on team name: ".. name)
-		return mw.text.trim(name)
+		return String.trim(name)
 	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then
 		mw.log("Underscore in team name: ".. name)
 		mw.ext.TeamLiquidIntegration.add_category('Pages with underscore team templates')
