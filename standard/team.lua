@@ -7,27 +7,8 @@
 --
 
 local Class = require('Module:Class')
+local DateExt = require('Module:Date/Ext')
 local Set = require('Module:Set')
-
-local function getGlobalDate()
-	local globalDate = mw.ext.VariablesLua.var('date')
-	if not(globalDate and globalDate ~= '') then
-		globalDate = mw.ext.VariablesLua.var('tournament_edate')
-		if not(globalDate and globalDate ~= '') then
-			globalDate = mw.ext.VariablesLua.var('tournament_enddate')
-			if not(globalDate and globalDate ~= '') then
-				globalDate = mw.ext.VariablesLua.var('tournament_startdate')
-				if not(globalDate and globalDate ~= '') then
-					globalDate = mw.ext.VariablesLua.var('tournament_sdate')
-					if not(globalDate and globalDate ~= '') then
-						globalDate = os.date( '%F' )
-					end
-				end
-			end
-		end
-	end
-	return globalDate
-end
 
 local function getNullMessage(name)
 	mw.log('Missing team: ' .. name)
@@ -69,10 +50,10 @@ local function getTemplate(form, name, date, skipOverride)
 		local override = getOverride(form, name, date)
 		if override then return override end
 	end
-	if mw.ext.TeamTemplate.teamexists(name) then return mw.ext.TeamTemplate[form](name, date or getGlobalDate())
-	elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then mw.log("Trimmed needed on team name: ".. name) mw.ext.TeamLiquidIntegration.add_category('Pages with trimmed team templates') return mw.ext.TeamTemplate[form](mw.text.trim(name), date or getGlobalDate())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then mw.log("Underscore in team name: ".. name) mw.ext.TeamLiquidIntegration.add_category('Pages with underscore team templates') return mw.ext.TeamTemplate[form]((name:gsub("_", " ")), date or getGlobalDate())
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then mw.log("Underscore in team name: ".. name) mw.ext.TeamLiquidIntegration.add_category('Pages with underscore team templates') return mw.ext.TeamTemplate[form]((name:gsub(" ", "_")), date or getGlobalDate())
+	if mw.ext.TeamTemplate.teamexists(name) then return mw.ext.TeamTemplate[form](name, date or DateExt.getContextualDateOrNow())
+	elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then mw.log("Trimmed needed on team name: ".. name) mw.ext.TeamLiquidIntegration.add_category('Pages with trimmed team templates') return mw.ext.TeamTemplate[form](mw.text.trim(name), date or DateExt.getContextualDateOrNow())
+	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then mw.log("Underscore in team name: ".. name) mw.ext.TeamLiquidIntegration.add_category('Pages with underscore team templates') return mw.ext.TeamTemplate[form]((name:gsub("_", " ")), date or DateExt.getContextualDateOrNow())
+	elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then mw.log("Underscore in team name: ".. name) mw.ext.TeamLiquidIntegration.add_category('Pages with underscore team templates') return mw.ext.TeamTemplate[form]((name:gsub(" ", "_")), date or DateExt.getContextualDateOrNow())
 	else return nil
 	end
 end
@@ -104,10 +85,10 @@ local p = {
 			if override then return override end
 		end
 		local output
-		if mw.ext.TeamTemplate.teamexists(name) then output = mw.ext.TeamTemplate.raw(name, date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then output = mw.ext.TeamTemplate.raw(mw.text.trim(name), date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then output = mw.ext.TeamTemplate.raw(name:gsub("_", " "), date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then output = mw.ext.TeamTemplate.raw(name:gsub(" ", "_"), date or getGlobalDate())
+		if mw.ext.TeamTemplate.teamexists(name) then output = mw.ext.TeamTemplate.raw(name, date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then output = mw.ext.TeamTemplate.raw(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then output = mw.ext.TeamTemplate.raw(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then output = mw.ext.TeamTemplate.raw(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
 		else mw.log('Missing team: ' .. name) return '<span class="error">Missing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]'
 		end
 		if output.image ~= '' then
@@ -124,10 +105,10 @@ local p = {
 	['iconFile'] = function (_, name, date)
 		local output = getOverride('iconfile', name, date)
 		if output then return output
-		elseif mw.ext.TeamTemplate.teamexists(name) then output = mw.ext.TeamTemplate.raw(name, date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then output = mw.ext.TeamTemplate.raw(mw.text.trim(name), date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then output = mw.ext.TeamTemplate.raw(name:gsub("_", " "), date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then output = mw.ext.TeamTemplate.raw(name:gsub(" ", "_"), date or getGlobalDate())
+		elseif mw.ext.TeamTemplate.teamexists(name) then output = mw.ext.TeamTemplate.raw(name, date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then output = mw.ext.TeamTemplate.raw(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then output = mw.ext.TeamTemplate.raw(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then output = mw.ext.TeamTemplate.raw(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
 		else mw.log('Missing team: ' .. name .. ' (icon)') return mw.loadData('Module:Team/override').games['']
 		end
 		return output.image ~= '' and output.image or output.legacyimage
@@ -135,10 +116,10 @@ local p = {
 
 	['imageFile'] = function (_, name, date)
 		local output
-		if mw.ext.TeamTemplate.teamexists(name) then output = mw.ext.TeamTemplate.raw(name, date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then output = mw.ext.TeamTemplate.raw(mw.text.trim(name), date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then output = mw.ext.TeamTemplate.raw(name:gsub("_", " "), date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then output = mw.ext.TeamTemplate.raw(name:gsub(" ", "_"), date or getGlobalDate())
+		if mw.ext.TeamTemplate.teamexists(name) then output = mw.ext.TeamTemplate.raw(name, date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then output = mw.ext.TeamTemplate.raw(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then output = mw.ext.TeamTemplate.raw(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then output = mw.ext.TeamTemplate.raw(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
 		else mw.log('Missing team: ' .. name .. ' (icon)') return nil
 		end
 		return output.image ~= '' and output.image or nil
@@ -146,10 +127,10 @@ local p = {
 
 	['imageFileDark'] = function (_, name, date)
 		local output
-		if mw.ext.TeamTemplate.teamexists(name) then output = mw.ext.TeamTemplate.raw(name, date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then output = mw.ext.TeamTemplate.raw(mw.text.trim(name), date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then output = mw.ext.TeamTemplate.raw(name:gsub("_", " "), date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then output = mw.ext.TeamTemplate.raw(name:gsub(" ", "_"), date or getGlobalDate())
+		if mw.ext.TeamTemplate.teamexists(name) then output = mw.ext.TeamTemplate.raw(name, date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then output = mw.ext.TeamTemplate.raw(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then output = mw.ext.TeamTemplate.raw(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then output = mw.ext.TeamTemplate.raw(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
 		else mw.log('Missing team: ' .. name .. ' (icon)') return nil
 		end
 		return (output.imagedark ~= '' and output.imagedark) or (output.image ~= '' and output.image) or nil
@@ -162,10 +143,10 @@ local p = {
 	['page'] = function (_, name, date)
 		local override = getOverride('teampage', name, date)
 		if override then return override
-		elseif mw.ext.TeamTemplate.teamexists(name) then return mw.ext.TeamTemplate.teampage(name, date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then return mw.ext.TeamTemplate.teampage(mw.text.trim(name), date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then return mw.ext.TeamTemplate.teampage(name:gsub("_", " "), date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then return mw.ext.TeamTemplate.teampage(name:gsub(" ", "_"), date or getGlobalDate())
+		elseif mw.ext.TeamTemplate.teamexists(name) then return mw.ext.TeamTemplate.teampage(name, date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then return mw.ext.TeamTemplate.teampage(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then return mw.ext.TeamTemplate.teampage(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then return mw.ext.TeamTemplate.teampage(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
 		else return name
 		end
 	end,
@@ -188,10 +169,10 @@ local p = {
 			if override then return override end
 		end
 		local output
-		if mw.ext.TeamTemplate.teamexists(name) then output = mw.ext.TeamTemplate.raw(name, date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then output = mw.ext.TeamTemplate.raw(mw.text.trim(name), date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then output = mw.ext.TeamTemplate.raw(name:gsub("_", " "), date or getGlobalDate())
-		elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then output = mw.ext.TeamTemplate.raw(name:gsub(" ", "_"), date or getGlobalDate())
+		if mw.ext.TeamTemplate.teamexists(name) then output = mw.ext.TeamTemplate.raw(name, date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(mw.text.trim(name)) then output = mw.ext.TeamTemplate.raw(mw.text.trim(name), date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then output = mw.ext.TeamTemplate.raw(name:gsub("_", " "), date or DateExt.getContextualDateOrNow())
+		elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then output = mw.ext.TeamTemplate.raw(name:gsub(" ", "_"), date or DateExt.getContextualDateOrNow())
 		else mw.log('Missing team: ' .. name) return '<span class="error">Missing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]'
 		end
 		if output.image ~= '' then
