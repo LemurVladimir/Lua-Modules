@@ -45,7 +45,9 @@ local custom = {
 	['teampage'] = function (name, _) return name end
 } --[[@as table<string, (fun(name:string, img:string): string)> ]]
 
-local function getOverride(form, name, data)
+local p = {}
+
+function p.override(form, name, data)
 	if name == nil then
 		return nil
 	end
@@ -63,9 +65,9 @@ local function getOverride(form, name, data)
 	end
 end
 
-local function getTemplate(form, name, date, skipOverride)
+function p._getTemplate(form, name, date, skipOverride)
 	if not(skipOverride) then
-		local override = getOverride(form, name, date)
+		local override = p.override(form, name, date)
 		if override then
 			return override
 		end
@@ -89,30 +91,29 @@ local function getTemplate(form, name, date, skipOverride)
 	end
 end
 
-local p = {}
 function p.team(_, name, date)
-	return getTemplate('team', name, date) or getNullMessage(name)
+	return p._getTemplate('team', name, date) or getNullMessage(name)
 end
 
 function p.team2(_, name, date)
-	return getTemplate('team2', name, date) or getNullMessage(name)
+	return p._getTemplate('team2', name, date) or getNullMessage(name)
 end
 
 function p.short(_, name, date)
-	return getTemplate('teamshort', name, date) or ('<div class="error">' .. name .. ' (missing)</div>' .. '[[Category:Pages with missing team templates]]')
+	return p._getTemplate('teamshort', name, date) or ('<div class="error">' .. name .. ' (missing)</div>' .. '[[Category:Pages with missing team templates]]')
 end
 
 function p.short2 (_, name, date)
-	return getTemplate('team2short', name, date) or ('<span class="error">(missing) ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]')
+	return p._getTemplate('team2short', name, date) or ('<span class="error">(missing) ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]')
 end
 
 function p.bracket(_, name, date, skipOverride)
-	return getTemplate('teambracket', name, date, skipOverride) or ('<span class="error">Missing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]')
+	return p._getTemplate('teambracket', name, date, skipOverride) or ('<span class="error">Missing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]')
 end
 
 function p.bracketShort(_, name, date, skipOverride)
 	if not(skipOverride) then
-		local override = getOverride('teambracket', name, date)
+		local override = p.override('teambracket', name, date)
 		if override then return override end
 	end
 	local output
@@ -136,11 +137,11 @@ function p.bracketShort(_, name, date, skipOverride)
 end
 
 function p.icon(_, name, date)
-		return getTemplate('teamicon', name, date) or getNullMessage(name)
+		return p._getTemplate('teamicon', name, date) or getNullMessage(name)
 end
 
 function p.iconFile(_, name, date)
-	local output = getOverride('iconfile', name, date)
+	local output = p.override('iconfile', name, date)
 	if output then return output
 	elseif mw.ext.TeamTemplate.teamexists(name) then
 		output = mw.ext.TeamTemplate.raw(name, date or DateExt.getContextualDateOrNow())
@@ -192,11 +193,11 @@ function p.imageFileDark(_, name,date)
 end
 
 function p.part(_, name, date)
-	return getTemplate('teampart', name, date) or getNullMessage(name)
+	return p._getTemplate('teampart', name, date) or getNullMessage(name)
 end
 
 function p.page(_, name, date)
-	local override = getOverride('teampage', name, date)
+	local override = p.override('teampage', name, date)
 	if override then
 		return override
 	elseif mw.ext.TeamTemplate.teamexists(name) then
@@ -213,20 +214,20 @@ function p.page(_, name, date)
 end
 
 function p.shortname(_, name, date)
-	return (getTemplate('raw', name, date) or {}).shortname or getNullMessage(name)
+	return (p._getTemplate('raw', name, date) or {}).shortname or getNullMessage(name)
 end
 
 function p.name(_, name, date)
-	return (getTemplate('raw', name, date) or {}).name or getNullMessage(name)
+	return (p._getTemplate('raw', name, date) or {}).name or getNullMessage(name)
 end
 
 function p.template(_, name, date)
-	return (getTemplate('raw', name, date) or {}).templatename or getNullMessage(name)
+	return (p._getTemplate('raw', name, date) or {}).templatename or getNullMessage(name)
 end
 
 function p.bracketname(_, name, date, skipOverride)
 	if not(skipOverride) then
-		local override = getOverride('teambracket', name, date)
+		local override = p.override('teambracket', name, date)
 		if override then return override end
 	end
 	local output
@@ -248,8 +249,6 @@ function p.bracketname(_, name, date, skipOverride)
 		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-short"><span class="team-template-image-legacy">[[File:' .. output.legacyimage .. '|link=' .. name .. ']]</span> <span class="team-template-text">[[' .. output.bracketname .. ']]</span>'
 	end
 end
-
-p.override = getOverride
 
 function p.get(frame)
 	local args = {}
