@@ -25,26 +25,34 @@ end
 
 local custom = {
 	['team'] = function (name, img)
-		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-standard"><span class="team-template-image-icon">' ..
-			Image.display(img, nil, {size = '100x50px', link = name}) .. '</span> <span class="team-template-text">[[' .. name .. ']]</span></span>'
+		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-standard">' ..
+			'<span class="team-template-image-icon">' .. Image.display(img, nil, {size = '100x50px', link = name}) ..
+			'</span> <span class="team-template-text">[[' .. name .. ']]</span></span>'
 	end,
 	['team2'] = function (name, img)
-		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-standard"><span class="team-template-text">[[' .. name .. ']]</span> <span class="team-template-image-icon">' .. Image.display(img, nil, {size = '100x50px', link = name}) .. '</span></span>'
+		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-standard">' ..
+			'<span class="team-template-text">[[' .. name .. ']]</span> <span class="team-template-image-icon">' ..
+			Image.display(img, nil, {size = '100x50px', link = name}) .. '</span></span>'
 	end,
 	['teamshort'] = function (name, img)
-		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-short"><span class="team-template-image-icon">' ..
-			Image.display(img, nil, {size = '100x50px', link = name}) .. '</span> <span class="team-template-text">[[' .. name .. ']]</span></span>'
+		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-short">' ..
+			'<span class="team-template-image-icon">' ..Image.display(img, nil, {size = '100x50px', link = name}) ..
+			'</span> <span class="team-template-text">[[' .. name .. ']]</span></span>'
 	end,
 	['team2short'] = function (name, img)
-		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-short"><span class="team-template-text">[[' .. name .. ']]</span> <span class="team-template-image-icon">' .. Image.display(img, nil, {size='100x50px', link=name}) .. '</span></span>'
+		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-short">' ..
+			'<span class="team-template-text">[[' .. name .. ']]</span> <span class="team-template-image-icon">' ..
+			Image.display(img, nil, {size='100x50px', link=name}) .. '</span></span>'
 	end,
 	['teambracket'] = function (name, img)
-		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-bracket"><span class="team-template-image-icon">' ..
-			Image.display(img, nil, {size = '100x50px', link = name}) .. '</span> <span class="team-template-text">' .. name .. '</span></span>'
+		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-bracket">' ..
+			'<span class="team-template-image-icon">' .. Image.display(img, nil, {size = '100x50px', link = name}) ..
+			'</span> <span class="team-template-text">' .. name .. '</span></span>'
 	end,
 	['teamicon'] = function (name, img)
-		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-icon"><span class="team-template-image-icon">' ..
-			Image.display(img, nil, {size = '100x50px',link = name}) .. '</span></span>'
+		return '<span data-highlightingclass="' .. name .. '" class="team-template-team-icon">' ..
+			'<span class="team-template-image-icon">' .. Image.display(img, nil, {size = '100x50px',link = name}) ..
+			'</span></span>'
 	end,
 	['teampart'] = function (name, img)
 		return '<span class="team-template-team-part"><span class="team-template-image-icon">' ..
@@ -123,21 +131,27 @@ function Team.team2(_, name, date)
 end
 
 function Team.short(_, name, date)
-	return Team._getTemplate('teamshort', name, date) or ('<div class="error">' .. name .. ' (missing)</div>' .. '[[Category:Pages with missing team templates]]')
+	return Team._getTemplate('teamshort', name, date) or (
+		'<div class="error">' .. name .. ' (missing)</div>' .. '[[Category:Pages with missing team templates]]'
+	)
 end
 
 function Team.short2 (_, name, date)
-	return Team._getTemplate('team2short', name, date) or ('<span class="error">(missing) ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]')
+	return Team._getTemplate('team2short', name, date) or (
+		'<span class="error">(missing) ' .. name .. '</span' .. '[[Category:Pages with missing team templates]]'
+	)
 end
 
 function Team.bracket(_, name, date, skipOverride)
-	return Team._getTemplate('teambracket', name, date, skipOverride) or ('<span class="error">Missing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]')
+	return Team._getTemplate('teambracket', name, date, skipOverride) or (
+		'<span class="error">issing: ' .. name .. '</span>' .. '[[Category:Pages with missing team templates]]'
+	)
 end
 
 function Team.bracketShort(_, name, date, skipOverride)
 	if not(skipOverride) then
 		local override = Team.override('teambracket', name, date)
-		if override then return override end
+	if override then return override end
 	end
 	local processedName = Team._preprocessTeamTemplateName(name)
 	if not processedName then
@@ -147,12 +161,16 @@ function Team.bracketShort(_, name, date, skipOverride)
 	end
 	local output = Team.queryRaw(processedName, date or DateExt.getContextualDateOrNow()) or {}
 	if String.isNotEmpty(output.image) then
-		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-bracket"><span class="team-template-image-icon lightmode">' ..
-			Image.display(output.image, nil, {size = '100x50px', link = ''}) .. '</span><span class="team-template-image-icon darkmode" style="display:none">' ..
-			Image.display(Logic.emptyOr(output.imagedark, output.image), nil, {size = '100x50px', link = ''}) .. '</span> <span class="team-template-text">' .. output.shortname .. '</span></span>'
+		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-bracket">' ..
+			'<span class="team-template-image-icon lightmode">' ..
+			Image.display(output.image, nil, {size = '100x50px', link = ''}) ..
+			'</span><span class="team-template-image-icon darkmode" style="display:none">' ..
+			Image.display(Logic.emptyOr(output.imagedark, output.image), nil, {size = '100x50px', link = ''}) ..
+			'</span> <span class="team-template-text">' .. output.shortname .. '</span></span>'
 	else
-		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-bracket"><span class="team-template-image-legacy">' ..
-			Image.display(output.legacyimage, nil, {link = ''}) .. '</span> <span class="team-template-text">' .. output.shortname .. '</span></span>'
+		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-bracket">' ..
+			'<span class="team-template-image-legacy">' .. Image.display(output.legacyimage, nil, {link = ''}) ..
+			'</span> <span class="team-template-text">' .. output.shortname .. '</span></span>'
 	end
 end
 
@@ -235,11 +253,13 @@ function Team.bracketname(_, name, date, skipOverride)
 	end
 	local output = Team.queryRaw(processedName, date or DateExt.getContextualDateOrNow()) or {}
 	if String.isNotEmpty(output.image) then
-		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-short"><span class="team-template-image-icon">' ..
-			Image.display(output.image, nil, {link = name}) .. '</span> <span class="team-template-text">[[' .. output.bracketname .. ']]</span></span>'
+		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-short">' ..
+			'<span class="team-template-image-icon">' .. Image.display(output.image, nil, {link = name}) ..
+			'</span> <span class="team-template-text">[[' .. output.bracketname .. ']]</span></span>'
 	else
-		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-short"><span class="team-template-image-legacy">' ..
-			Image.display(output.legacyimage, nil, {link = name}) .. '</span> <span class="team-template-text">[[' .. output.bracketname .. ']]</span>'
+		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-short">' ..
+			'<span class="team-template-image-legacy">' .. Image.display(output.legacyimage, nil, {link = name}) ..
+			'</span> <span class="team-template-text">[[' .. output.bracketname .. ']]</span>'
 	end
 end
 
