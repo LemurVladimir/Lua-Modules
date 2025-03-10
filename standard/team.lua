@@ -16,6 +16,7 @@ local Logic = require('Module:Logic')
 local Lua = require('Module:Lua')
 local String = require('Module:StringUtils')
 local Table = require('Module:Table')
+local TeamTemplate = require('Module:TeamTemplate')
 local Variables = require('Module:Variables')
 
 local Overrides = Lua.import('Module:Team/override', { loadData = true })
@@ -72,17 +73,17 @@ local Team = {}
 ---@param name string
 ---@return string|nil
 function Team._preprocessTeamTemplateName(name)
-	if mw.ext.TeamTemplate.teamexists(name) then
+	if TeamTemplate.exists(name) then
 		return name
-	elseif mw.ext.TeamTemplate.teamexists(String.trim(name))then
+	elseif TeamTemplate.exists(String.trim(name))then
 		mw.log("Trimmed needed on team name: ".. name)
 		return String.trim(name)
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub("_", " ")) then
+	elseif TeamTemplate.exists(name:gsub("_", " ")) then
 		mw.log("Underscore in team name: ".. name)
 		mw.ext.TeamLiquidIntegration.add_category('Pages with underscore team templates')
 		local sub_name = name:gsub("_", " ")
 		return sub_name
-	elseif mw.ext.TeamTemplate.teamexists(name:gsub(" ", "_")) then
+	elseif TeamTemplate.exists(name:gsub(" ", "_")) then
 		mw.log("Underscore in team name: ".. name)
 		mw.ext.TeamLiquidIntegration.add_category('Pages with underscore team templates')
 		local sub_name = name:gsub(" ", "_")
@@ -121,7 +122,12 @@ function Team._getTemplate(type, name, date, skipOverride)
 		end
 	end
 	local processedName = Team._preprocessTeamTemplateName(name)
-	return processedName and mw.ext.TeamTemplate[type](processedName, date or DateExt.getContextualDateOrNow()) or nil
+	if processedName == nil then
+		return nil
+	elseif type == 'raw' then
+		return TeamTemplate.getRawOrNil(processedName)
+	end
+	return mw.ext.TeamTemplate[type](processedName, date or DateExt.getContextualDateOrNow())
 end
 
 function Team.team(_, name, date)
@@ -161,7 +167,7 @@ function Team.bracketShort(_, name, date, skipOverride)
 		mw.ext.TeamLiquidIntegration.add_category('Pages with missing team templates')
 		return '<span class="error">Missing: ' .. name .. '</span>'
 	end
-	local output = Team.queryRaw(processedName, date or DateExt.getContextualDateOrNow()) or {}
+	local output = TeamTemplate.getRawOrNil(processedName, date or DateExt.getContextualDateOrNow()) or {}
 	if String.isNotEmpty(output.image) then
 		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-bracket">' ..
 			'<span class="team-template-image-icon lightmode">' ..
@@ -190,8 +196,8 @@ function Team.iconFile(_, name, date)
 		mw.log('Missing team: ' .. name .. ' (icon)')
 		return Overrides.games['']
 	end
-	output = Team.queryRaw(processedName, date or DateExt.getContextualDateOrNow()) or {}
-	return Logic.emptyOr(output.image, output.legacyimage)
+	local imageLight, _ = TeamTemplate.getIcon(processedName, date)
+	return imageLight
 end
 
 function Team.imageFile(_, name, date)
@@ -200,8 +206,8 @@ function Team.imageFile(_, name, date)
 		mw.log('Missing team: ' .. name .. ' (icon)')
 		return nil
 	end
-	local output = Team.queryRaw(processedName, date or DateExt.getContextualDateOrNow()) or {}
-	return Logic.emptyOr(output.image)
+	local imageLight, _ = TeamTemplate.getIcon(processedName, date)
+	return imageLight
 end
 
 function Team.imageFileDark(_, name,date)
@@ -210,8 +216,8 @@ function Team.imageFileDark(_, name,date)
 		mw.log('Missing team: ' .. name .. ' (icon)')
 		return nil
 	end
-	local output = Team.queryRaw(processedName, date or DateExt.getContextualDateOrNow()) or {}
-	return Logic.emptyOr(output.imagedark, output.image)
+	local _, imageDark = TeamTemplate.getIcon(processedName, date)
+	return imageDark
 end
 
 function Team.part(_, name, date)
@@ -232,15 +238,15 @@ function Team.page(_, name, date)
 end
 
 function Team.shortname(_, name, date)
-	return (Team.queryRaw(name, date) or {}).shortname or getNullMessage(name)
+	return (TeamTemplate.getRawOrNil(name, date) or {}).shortname or getNullMessage(name)
 end
 
 function Team.name(_, name, date)
-	return (Team.queryRaw(name, date) or {}).name or getNullMessage(name)
+	return (TeamTemplate.getRawOrNil(name, date) or {}).name or getNullMessage(name)
 end
 
 function Team.template(_, name, date)
-	return (Team.queryRaw(name, date) or {}).templatename or getNullMessage(name)
+	return (TeamTemplate.getRawOrNil(name, date) or {}).templatename or getNullMessage(name)
 end
 
 function Team.bracketname(_, name, date, skipOverride)
@@ -253,7 +259,7 @@ function Team.bracketname(_, name, date, skipOverride)
 		mw.log('Missing team: ' .. name .. ' (icon)')
 		return Overrides.games['']
 	end
-	local output = Team.queryRaw(processedName, date or DateExt.getContextualDateOrNow()) or {}
+	local output = TeamTemplate.getRawOrNil(processedName, date or DateExt.getContextualDateOrNow()) or {}
 	if String.isNotEmpty(output.image) then
 		return '<span data-highlightingclass="' .. output.page .. '" class="team-template-team-short">' ..
 			'<span class="team-template-image-icon">' .. Image.display(output.image, nil, {link = name}) ..
@@ -282,44 +288,36 @@ end
 ---@param date string|number?
 ---@return string|teamTemplateData?
 function Team.queryDB(type, name, date)
-	if mw.ext.TeamTemplate.teamexists(name) then
+	if TeamTemplate.exists(name) then
 		return mw.ext.TeamTemplate[type](name, date)
 	else
 		return nil
 	end
 end
 
+---Use TeamTemplate.getRawOrNil instead.
 ---@param name string
 ---@param date string|number?
 ---@return teamTemplateData?
+---@deprecated
 function Team.queryRaw(name, date)
-	if mw.ext.TeamTemplate.teamexists(name) then
-		return mw.ext.TeamTemplate.raw(name, date)
-	else
-		return nil
-	end
+	return TeamTemplate.getRawOrNil(name, date)
 end
 
+---Use TeamTemplate.queryHistorical instead. 
 ---@param name string
 ---@return {[string]: string}?
+---@deprecated
 function Team.queryHistorical(name)
-	return mw.ext.TeamTemplate.raw_historical(name)
+	return TeamTemplate.queryHistorical(name)
 end
 
+---Use TeamTemplate.queryHistoricalNames instead.
 ---@param name string
 ---@return string[]|nil
+---@deprecated
 function Team.queryHistoricalNames(name)
-	if mw.ext.TeamTemplate.teamexists(name) then
-		local index = Team.queryHistorical(name) or {}
-		if Logic.isNotEmpty(index) then
-			local templates = Table.mapValues(index, FnUtil.identity)
-			return Array.unique(templates)
-		else
-			return { mw.ext.TeamTemplate.teampage(name) }
-		end
-	else
-		return nil
-	end
+	return TeamTemplate.queryHistoricalNames(name)
 end
 
 return Class.export(Team)
